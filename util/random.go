@@ -2,6 +2,7 @@ package util
 
 import (
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -37,8 +38,8 @@ func RandomOwner() string {
 }
 
 // RandomMoney() generates a random amount of money.
-func RandomMoney() int64 {
-	return RandomInt(0, 999999)
+func RandomMoney() string {
+	return strconv.FormatInt((RandomInt(0, 999999)), 10)
 }
 
 // RandomCurrency() generates a random currency code.
