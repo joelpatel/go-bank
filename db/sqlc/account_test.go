@@ -3,7 +3,6 @@ package db
 
 import (
 	"context"
-	"strconv"
 	"testing"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 func createRandomAccount(t *testing.T) Account {
 	args := CreateAccontParams{
 		Owner:    util.RandomOwner(),
-		Balance:  strconv.FormatInt(util.RandomMoney(), 10),
+		Balance:  util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
 
