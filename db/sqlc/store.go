@@ -107,7 +107,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		// TODO: Subtract values from sender.
+		// Subtract values from sender.
 		account1, err := q.GetAccountForUpdate(ctx, arg.FromAccountID)
 		if err != nil {
 			return err
@@ -121,7 +121,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		// TODO: Add values to receiver.
+		// Add values to receiver.
 		account2, err := q.GetAccountForUpdate(ctx, arg.ToAccountID)
 		if err != nil {
 			return err
