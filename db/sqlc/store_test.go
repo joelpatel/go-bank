@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"testing"
 
@@ -15,10 +14,10 @@ func TestTransferTx(t *testing.T) {
 
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
-	fmt.Printf(">> before:\t%v\t%v\n", account1.Balance, account2.Balance)
+	// fmt.Printf(">> before:\t%v\t%v\n", account1.Balance, account2.Balance)
 
-	n := 5
-	amount := float64(10.00001)
+	n := 6
+	amount := float64(10.1)
 
 	errors := make(chan error)
 	results := make(chan TransferTxResult)
@@ -90,7 +89,7 @@ func TestTransferTx(t *testing.T) {
 		require.Equal(t, account2.ID, toAccount.ID)
 
 		// check subtracted values from sender
-		fmt.Printf(">> tx:\t%v\t%v\n", fromAccount.Balance, toAccount.Balance)
+		// fmt.Printf(">> tx:\t%v\t%v\n", fromAccount.Balance, toAccount.Balance)
 		diff1 := util.RoundFloat(account1.Balance-fromAccount.Balance, 6)
 		// fmt.Printf(">> %v - %v = %v\n", account1.Balance, fromAccount.Balance, diff1)
 		require.NoError(t, err)
@@ -118,7 +117,7 @@ func TestTransferTx(t *testing.T) {
 	updatedAccount2, err := testQueries.GetAccount(context.Background(), account2.ID)
 	require.NoError(t, err)
 
-	fmt.Printf(">> after:\t%v\t%v\n", updatedAccount1.Balance, updatedAccount2.Balance)
+	// fmt.Printf(">> after:\t%v\t%v\n", updatedAccount1.Balance, updatedAccount2.Balance)
 
 	// account1.Balance - n * amountFl == updatedAccount1.Balance
 	require.NoError(t, err)
