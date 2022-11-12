@@ -18,7 +18,7 @@ func TestTransferTx(t *testing.T) {
 	fmt.Printf(">> before:\t%v\t%v\n", account1.Balance, account2.Balance)
 
 	n := 5
-	amount := float64(10)
+	amount := float64(10.00001)
 
 	errors := make(chan error)
 	results := make(chan TransferTxResult)
@@ -90,7 +90,7 @@ func TestTransferTx(t *testing.T) {
 		require.Equal(t, account2.ID, toAccount.ID)
 
 		// check subtracted values from sender
-		// fmt.Printf(">> tx:\t%v\t%v\n", fromAccount.Balance, toAccount.Balance)
+		fmt.Printf(">> tx:\t%v\t%v\n", fromAccount.Balance, toAccount.Balance)
 		diff1 := util.RoundFloat(account1.Balance-fromAccount.Balance, 6)
 		// fmt.Printf(">> %v - %v = %v\n", account1.Balance, fromAccount.Balance, diff1)
 		require.NoError(t, err)
@@ -101,7 +101,8 @@ func TestTransferTx(t *testing.T) {
 		require.True(t, diff1 > 0)
 
 		// fmt.Printf(">> diff = %v\tamount = %v\n", diff1, amount)
-		require.True(t, math.Mod(float64(diff1), float64(amount)) == 0) // 1 * amount, 2 * amount, 3 * amount, ..., n * amount
+		// fmt.Printf("diff1 %% amount = %v\n", util.RoundFloat(math.Mod(diff1, amount), PRECISION))
+		require.True(t, util.RoundFloat(math.Mod(diff1, amount), PRECISION) == 0) // 1 * amount, 2 * amount, 3 * amount, ..., n * amount
 
 		k := int(diff1 / amount)
 		require.True(t, k >= 1 && k <= n)

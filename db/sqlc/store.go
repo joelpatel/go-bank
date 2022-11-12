@@ -4,6 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
+	"github.com/joelpatel/go-bank/util"
+)
+
+const (
+	PRECISION = 6
 )
 
 /*
@@ -86,7 +92,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		//Create a -ve. account entry for sender.
 		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.FromAccountID,
-			Amount:    -arg.Amount,
+			Amount:    util.RoundFloat(-arg.Amount, PRECISION),
 		})
 		if err != nil {
 			return err
@@ -95,7 +101,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		// Create a +ve. account entry for receiver.
 		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.ToAccountID,
-			Amount:    arg.Amount,
+			Amount:    util.RoundFloat(arg.Amount, PRECISION),
 		})
 		if err != nil {
 			return err
@@ -109,7 +115,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 
 		result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
 			ID:      account1.ID,
-			Balance: account1.Balance - arg.Amount,
+			Balance: util.RoundFloat(account1.Balance-arg.Amount, PRECISION),
 		})
 		if err != nil {
 			return err
@@ -123,7 +129,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 
 		result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
 			ID:      account2.ID,
-			Balance: account2.Balance + arg.Amount,
+			Balance: util.RoundFloat(account2.Balance+arg.Amount, PRECISION),
 		})
 		if err != nil {
 			return err
