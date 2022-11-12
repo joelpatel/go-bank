@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strconv"
 )
 
 /*
@@ -18,9 +17,9 @@ type Store struct {
 
 // Contains all input parameters of the transfer tx.
 type TransferTxParams struct {
-	FromAccountID int64  `json:"from_account_id"`
-	ToAccountID   int64  `json:"to_account_id"`
-	Amount        string `json:"amount"`
+	FromAccountID int64   `json:"from_account_id"`
+	ToAccountID   int64   `json:"to_account_id"`
+	Amount        float64 `json:"amount"`
 }
 
 // Result of the transfer tx.
@@ -59,6 +58,9 @@ func (store *Store) executeTx(ctx context.Context, fn func(*Queries) error) erro
 	return tx.Commit()
 }
 
+// empty struct used later for storing transaction key/name inside a context
+var txKey = struct{}{}
+
 /*
 Transfer money from one account to another.
 - Create a transfer record.
@@ -73,6 +75,10 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 	err := store.executeTx(ctx, func(q *Queries) error {
 		var err error
 
+		txName := ctx.Value(txKey)
+
+		fmt.Printf(">> %v create transfer\n", txName)
+
 		// Create a transfer record.
 		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{ // closure as using result (outer) inside callback func.
 			FromAccountID: arg.FromAccountID,
@@ -84,29 +90,57 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
+		fmt.Printf(">> %v create entry 1\n", txName)
 		//Create a -ve. account entry for sender.
-		amount, _ := strconv.ParseFloat(arg.Amount, 64)
 		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.FromAccountID,
-			Amount:    fmt.Sprintf("%v", -amount),
+			Amount:    -arg.Amount,
 		})
-
 		if err != nil {
 			return err
 		}
 
+		fmt.Printf(">> %v create entry 2\n", txName)
 		// Create a +ve. account entry for receiver.
 		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.ToAccountID,
 			Amount:    arg.Amount,
 		})
-
 		if err != nil {
 			return err
 		}
 
+		fmt.Printf(">> %v get account 1 for update\n", txName)
 		// TODO: Subtract values from sender.
+		account1, err := q.GetAccountForUpdate(ctx, arg.FromAccountID)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf(">> %v update account 1\n", txName)
+		result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+			ID:      account1.ID,
+			Balance: account1.Balance - arg.Amount,
+		})
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf(">> %v get account 2 for update\n", txName)
 		// TODO: Add values to receiver.
+		account2, err := q.GetAccountForUpdate(ctx, arg.ToAccountID)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf(">> %v update account 2\n", txName)
+		result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+			ID:      account2.ID,
+			Balance: account2.Balance + arg.Amount,
+		})
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})
