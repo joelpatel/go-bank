@@ -3,6 +3,7 @@ module github.com/joelpatel/go-bank
 go 1.19
 
 require (
+	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.7
 	github.com/stretchr/testify v1.8.1
 )

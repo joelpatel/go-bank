@@ -6,18 +6,14 @@ import (
 
 	"github.com/joelpatel/go-bank/api"
 	db "github.com/joelpatel/go-bank/db/sqlc"
+	"github.com/joelpatel/go-bank/util"
 	_ "github.com/lib/pq"
-)
-
-const (
-	dbDriver      = "postgres"
-	dbSource      = "postgresql://root:password@localhost:5432/bank?sslmode=disable"
-	serverAddress = "0.0.0.0:8080"
 )
 
 // Main entry point of all unit tests inside ONE specific golang PACKAGE.
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config := util.LoadConfig()
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatalf("cannot connect to the database: %v\n", err)
 	}
@@ -25,7 +21,7 @@ func main() {
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
-	err = server.Start(serverAddress)
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("cannot start server: ", err)
 	}
