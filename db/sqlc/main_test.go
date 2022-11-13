@@ -7,12 +7,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/joelpatel/go-bank/util"
 	_ "github.com/lib/pq"
-)
-
-const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:password@localhost:5432/bank?sslmode=disable"
 )
 
 var (
@@ -22,8 +18,9 @@ var (
 
 // Main entry point of all unit tests inside ONE specific golang PACKAGE.
 func TestMain(m *testing.M) {
+	config := util.LoadConfig()
 	var err error
-	testDB, err = sql.Open(dbDriver, dbSource)
+	testDB, err = sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatalf("cannot connect to the database: %v\n", err)
 	}
