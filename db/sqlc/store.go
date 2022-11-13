@@ -12,10 +12,15 @@ const (
 	PRECISION = 6
 )
 
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
 /*
-Store provides all functions to execute DB queries and transactions.
+SQLStore provides all functions to execute DB queries and transactions.
 */
-type Store struct {
+type SQLStore struct {
 	*Queries // composition ==> to extend functionality of Queries, like inheritance from other lang.
 	// all functionalities of Queries will be available to Store.
 	db *sql.DB
@@ -38,15 +43,15 @@ type TransferTxResult struct {
 }
 
 // Creates a new Store.
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
 
 // Executes a function within a database transaction.
-func (store *Store) executeTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) executeTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil) // using default tx. options
 	if err != nil {
 		return err
@@ -72,7 +77,7 @@ Transfer money from one account to another.
 - Subtract values from sender.
 - Add values to receiver.
 */
-func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.executeTx(ctx, func(q *Queries) error {
