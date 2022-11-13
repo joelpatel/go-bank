@@ -1,28 +1,27 @@
 package util
 
 import (
-	"log"
-	"os"
-
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	DBDriver      string
-	DBSource      string
-	ServerAddress string
+	DBDriver      string `mapstructure:"DB_DRIVER"`
+	DBSource      string `mapstructure:"DB_SOURCE"`
+	ServerAddress string `mapstructure:"SERVER_ADDRESS"`
 }
 
-func LoadConfig() Config {
-	err := godotenv.Load()
+func LoadConfig(path string) (config Config, err error) {
+	viper.AddConfigPath(path)
+	viper.SetConfigName("app") // look for config file with this specific name
+	viper.SetConfigType("env") // json, xml
+
+	viper.AutomaticEnv()
+
+	err = viper.ReadInConfig()
 	if err != nil {
-		log.Fatal("error loading .env file")
+		return
 	}
 
-	var config Config
-	config.DBDriver = os.Getenv("DB_DRIVER")
-	config.DBSource = os.Getenv("DB_SOURCE")
-	config.ServerAddress = os.Getenv("SERVER_ADDRESS")
-
-	return config
+	err = viper.Unmarshal(&config)
+	return
 }

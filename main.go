@@ -12,7 +12,11 @@ import (
 
 // Main entry point of all unit tests inside ONE specific golang PACKAGE.
 func main() {
-	config := util.LoadConfig()
+	config, err := util.LoadConfig(".") // in same dir path
+	if err != nil {
+		log.Fatal("error loading configuration: ", err)
+	}
+
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatalf("cannot connect to the database: %v\n", err)
