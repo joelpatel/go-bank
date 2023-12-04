@@ -5,16 +5,16 @@ import (
 )
 
 // create
-func CreateAccount(owner, balance, currency string) (int64, error) {
+func CreateAccount(owner, balance, currency string) error {
 	tx := db.Conn.MustBegin()
-	res := tx.MustExec("INSERT INTO accounts (owner, balance, currency) VALUES ($1, $2, $3);", owner, balance, currency)
+	tx.MustExec("INSERT INTO accounts (owner, balance, currency) VALUES ($1, $2, $3);", owner, balance, currency)
 	err := tx.Commit()
 
 	if err != nil {
-		return 0, err
+		tx.Rollback()
 	}
 
-	return res.LastInsertId()
+	return err
 }
 
 // read (id)
@@ -63,6 +63,7 @@ func UpdateAccount(account *Account) (int64, error) {
 	err := tx.Commit()
 
 	if err != nil {
+		tx.Rollback()
 		return 0, err
 	}
 
@@ -76,6 +77,7 @@ func UpdateAccountBalance(id string, balance int64) (int64, error) {
 	err := tx.Commit()
 
 	if err != nil {
+		tx.Rollback()
 		return 0, err
 	}
 
@@ -89,6 +91,7 @@ func DeleteAccountByID(id string) (int64, error) {
 	err := tx.Commit()
 
 	if err != nil {
+		tx.Rollback()
 		return 0, err
 	}
 
