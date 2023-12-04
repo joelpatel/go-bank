@@ -59,7 +59,20 @@ func GetAllAccountsPaginated(limit, offset string) (*[]Account, error) {
 // update
 func UpdateAccount(account *Account) (int64, error) {
 	tx := db.Conn.MustBegin()
-	res := tx.MustExec("UPDATE accounts set owner = $1, balance = $2, currency = $3 WHERE id = $4;", account.Owner, account.Balance, account.Currency, account.ID)
+	res := tx.MustExec("UPDATE accounts SET owner = $1, balance = $2, currency = $3 WHERE id = $4;", account.Owner, account.Balance, account.Currency, account.ID)
+	err := tx.Commit()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return res.RowsAffected()
+}
+
+// update account balance
+func UpdateAccountBalance(id string, balance int64) (int64, error) {
+	tx := db.Conn.MustBegin()
+	res := tx.MustExec("UPDATE accounts SET balance = $1 WHERE id = $2;", balance, id)
 	err := tx.Commit()
 
 	if err != nil {
