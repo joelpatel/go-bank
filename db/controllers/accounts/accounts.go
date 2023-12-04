@@ -1,22 +1,12 @@
-package controllers
+package accounts
 
 import (
-	"time"
-
 	"github.com/joelpatel/go-bank/db"
 )
 
-type Account struct {
-	ID        int64     `json:"id" db:"id"`
-	Owner     string    `json:"owner" db:"owner"`
-	Balance   int64     `json:"balance" db:"balance"` // int64 scaled representing last 3 digits as decimal points
-	Currency  string    `json:"currency" db:"currency"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-}
-
 // create
 func CreateAccount(owner, balance, currency string) (int64, error) {
-	tx := db.DBConn.MustBegin()
+	tx := db.Conn.MustBegin()
 	res := tx.MustExec("INSERT INTO accounts (owner, balance, currency) VALUES ($1, $2, $3);", owner, balance, currency)
 	err := tx.Commit()
 
@@ -31,7 +21,7 @@ func CreateAccount(owner, balance, currency string) (int64, error) {
 func GetAccountByID(id string) (*Account, error) {
 	var account Account
 
-	err := db.DBConn.Get(&account, "SELECT id, owner, balance, currency, created_at FROM accounts WHERE id = $1;", id)
+	err := db.Conn.Get(&account, "SELECT id, owner, balance, currency, created_at FROM accounts WHERE id = $1;", id)
 
 	if err != nil {
 		return nil, err
@@ -44,7 +34,20 @@ func GetAccountByID(id string) (*Account, error) {
 func GetAccountsByOwner(owner string) (*[]Account, error) {
 	var accounts []Account
 
-	err := db.DBConn.Select(&accounts, "SELECT id, owner, balance, currency, created_at FROM accounts WHERE owner = $1;", owner)
+	err := db.Conn.Select(&accounts, "SELECT id, owner, balance, currency, created_at FROM accounts WHERE owner = $1;", owner)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &accounts, nil
+}
+
+// read all (pagination)
+func GetAllAccountsPaginated(limit, offset string) (*[]Account, error) {
+	var accounts []Account
+
+	err := db.Conn.Select(&accounts, "SELECT id, owner, balance, currency, created_at FROM accounts ORDER BY id LIMIT $1 OFFSET $2;", limit, offset)
 
 	if err != nil {
 		return nil, err
@@ -55,7 +58,7 @@ func GetAccountsByOwner(owner string) (*[]Account, error) {
 
 // update
 func UpdateAccount(account *Account) (int64, error) {
-	tx := db.DBConn.MustBegin()
+	tx := db.Conn.MustBegin()
 	res := tx.MustExec("UPDATE accounts set owner = $1, balance = $2, currency = $3 WHERE id = $4;", account.Owner, account.Balance, account.Currency, account.ID)
 	err := tx.Commit()
 
@@ -68,7 +71,7 @@ func UpdateAccount(account *Account) (int64, error) {
 
 // delete
 func DeleteAccountByID(id string) (int64, error) {
-	tx := db.DBConn.MustBegin()
+	tx := db.Conn.MustBegin()
 	res := tx.MustExec("DELETE FROM accounts WHERE id = $1;", id)
 	err := tx.Commit()
 

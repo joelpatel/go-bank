@@ -8,7 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var DBConn *sqlx.DB
+var Conn *sqlx.DB
 
 func InitializeDBConnection() {
 	host := os.Getenv("DATABASE_HOST")
@@ -32,5 +32,5 @@ func InitializeDBConnection() {
 		panic(err.Error())
 	}
 
-	DBConn = db
+	Conn = db
 }
