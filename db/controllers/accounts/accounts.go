@@ -1,26 +1,32 @@
 package accounts
 
 import (
-	"time"
+	"database/sql"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/joelpatel/go-bank/db"
 )
 
-// create
-func CreateAccount(owner string, balance int64, currency string) (*Account, error) {
+const (
+	INSERT_ACCOUNT_QUERY = "INSERT INTO accounts (owner, balance, currency) VALUES ($1, $2, $3) RETURNING id, owner, balance, currency, created_at;"
+)
+
+func ScanRow(row *sql.Row) (*Account, error) {
+	var account Account
+
+	row.Scan(&account.ID, &account.Owner, &account.Balance, &account.Currency, &account.CreatedAt)
+
+	return &account, nil
+}
+
+// create (self contained transaction)
+func CreateAccountTx(owner string, balance int64, currency string) (*Account, error) {
 	tx := db.Conn.MustBegin()
 
-	row := tx.QueryRow("INSERT INTO accounts (owner, balance, currency) VALUES ($1, $2, $3) RETURNING id, owner, balance, currency, created_at;", owner, balance, currency)
+	row := tx.QueryRow(INSERT_ACCOUNT_QUERY, owner, balance, currency)
 
-	var (
-		insertedId       int64
-		insertedOwner    string
-		insertedBalance  int64
-		insertedCurrency string
-		createdAt        time.Time
-	)
+	account, err := ScanRow(row)
 
-	err := row.Scan(&insertedId, &insertedOwner, &insertedBalance, &insertedCurrency, &createdAt)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -32,13 +38,12 @@ func CreateAccount(owner string, balance int64, currency string) (*Account, erro
 		return nil, err
 	}
 
-	return &Account{
-		ID:        insertedId,
-		Owner:     insertedOwner,
-		Balance:   insertedBalance,
-		Currency:  insertedCurrency,
-		CreatedAt: createdAt,
-	}, nil
+	return account, nil
+}
+
+// create
+func CreateAccount(tx *sqlx.Tx, owner string, balance int64, currency string) (*Account, error) {
+	return ScanRow(tx.QueryRow(INSERT_ACCOUNT_QUERY, owner, balance, currency))
 }
 
 // read (id)
@@ -66,7 +71,7 @@ func GetAccountsByOwner(owner string) (*[]Account, error) {
 }
 
 // read all (pagination)
-func GetAllAccountsPaginated(limit, offset string) (*[]Account, error) {
+func GetAllAccounts(limit, offset int64) (*[]Account, error) {
 	var accounts []Account
 
 	err := db.Conn.Select(&accounts, "SELECT id, owner, balance, currency, created_at FROM accounts ORDER BY id LIMIT $1 OFFSET $2;", limit, offset)
