@@ -1,6 +1,8 @@
 package db
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"os"
 
@@ -33,4 +35,15 @@ func InitializeDBConnection() {
 	}
 
 	Conn = db
+}
+
+type Executor interface {
+	QueryRow(query string, args ...any) *sql.Row
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+	Get(dest interface{}, query string, args ...interface{}) error
+	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	Select(dest interface{}, query string, args ...interface{}) error
+	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	MustExec(query string, args ...interface{}) sql.Result
+	MustExecContext(ctx context.Context, query string, args ...interface{}) sql.Result
 }
