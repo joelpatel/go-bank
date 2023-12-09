@@ -52,11 +52,11 @@ func GetAccountsByOwner(ctx context.Context, executor Executor, owner string) (*
 	return &accounts, nil
 }
 
-// read all (pagination)
-func GetAllAccounts(ctx context.Context, executor Executor, limit, offset int64) (*[]Account, error) {
+// read (owner) (pagination)
+func ListAccounts(ctx context.Context, executor Executor, owner string, limit, offset int64) (*[]Account, error) {
 	var accounts []Account
 
-	err := executor.SelectContext(ctx, &accounts, "SELECT id, owner, balance, currency, created_at FROM accounts ORDER BY id LIMIT $1 OFFSET $2;", limit, offset)
+	err := executor.SelectContext(ctx, &accounts, "SELECT id, owner, balance, currency, created_at FROM accounts WHERE owner = $1 ORDER BY id LIMIT $2 OFFSET $3;", owner, limit, offset)
 	if err != nil {
 		return nil, err
 	}
