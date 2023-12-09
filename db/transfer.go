@@ -1,4 +1,4 @@
-package transfers
+package db
 
 import "time"
 

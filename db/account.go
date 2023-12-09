@@ -1,4 +1,4 @@
-package accounts
+package db
 
 import "time"
 

@@ -1,4 +1,4 @@
-package entries
+package db
 
 import "time"
 
