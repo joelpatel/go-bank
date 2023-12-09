@@ -9,17 +9,11 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-	"github.com/joho/godotenv"
 )
 
 var Conn *sqlx.DB
 
 func InitializeDBConnection() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalln("error loading .env file")
-	}
-
 	host := os.Getenv("DATABASE_HOST")
 	port := os.Getenv("DATABASE_PORT")
 	user := os.Getenv("DATABASE_USER")
@@ -32,13 +26,13 @@ func InitializeDBConnection() {
 	db, err := sqlx.Open("pgx", databaseUrl)
 
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	err = db.Ping()
 
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	Conn = db
