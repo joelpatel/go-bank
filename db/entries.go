@@ -19,7 +19,7 @@ func CreateEntry(ctx context.Context, executor Executor, accountID, amount int64
 }
 
 // read
-func GetEntryByID(ctx context.Context, executor Executor, id string) (*Entry, error) {
+func GetEntryByID(ctx context.Context, executor Executor, id int64) (*Entry, error) {
 	var entry Entry
 
 	err := executor.GetContext(ctx, &entry, "SELECT id, account_id, amount, created_at FROM entries WHERE id = $1;", id)
