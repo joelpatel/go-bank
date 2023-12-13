@@ -19,7 +19,7 @@ func CreateTransfer(ctx context.Context, executor Executor, from_account_id, to_
 }
 
 // read (id)
-func GetTransferByID(ctx context.Context, executor Executor, id string) (*Transfer, error) {
+func GetTransferByID(ctx context.Context, executor Executor, id int64) (*Transfer, error) {
 	var transfer Transfer
 
 	err := executor.GetContext(ctx, &transfer, "SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers WHERE id = $1;", id)
