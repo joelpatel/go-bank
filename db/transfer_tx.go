@@ -5,14 +5,6 @@ import (
 	"context"
 )
 
-type TransferTxResult struct {
-	TransferRecord  Transfer `json:"transfer"`
-	FromAccount     Account  `json:"from_account"`
-	ToAccount       Account  `json:"to_account"`
-	FromEntryRecord Entry    `json:"from_entry"`
-	ToEntryRecord   Entry    `json:"to_entry"`
-}
-
 // create a transfer record
 // create an entry record for: from
 // create an entry record for: to
