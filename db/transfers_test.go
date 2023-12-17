@@ -11,7 +11,7 @@ import (
 
 func createRandomTransfer(t *testing.T, fromAccount, toAccount *Account) *Transfer {
 	transferAmount := utils.RandomMoney()
-	transfer, err := CreateTransfer(context.Background(), testConn, fromAccount.ID, toAccount.ID, transferAmount)
+	transfer, err := testStore.CreateTransfer(context.Background(), fromAccount.ID, toAccount.ID, transferAmount)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfer)
 
@@ -31,7 +31,7 @@ func TestCreateTransfer(t *testing.T) {
 func TestGetTransferByID(t *testing.T) {
 	expectedTransfer := createRandomTransfer(t, createRandomAccount(t), createRandomAccount(t))
 
-	transfer, err := GetTransferByID(context.Background(), testConn, expectedTransfer.ID)
+	transfer, err := testStore.GetTransferByID(context.Background(), expectedTransfer.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfer)
 
@@ -54,7 +54,7 @@ func TestGetTransfersFrom(t *testing.T) {
 		}
 	}
 
-	transfers, err := GetTransfersFromTo(context.Background(), testConn, fromAccount.ID, -1, 5, 0)
+	transfers, err := testStore.GetTransfersFromTo(context.Background(), fromAccount.ID, -1, 5, 0)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfers)
 
@@ -66,7 +66,7 @@ func TestGetTransfersFrom(t *testing.T) {
 		require.Equal(t, expectedTransfers[i].CreatedAt, transfer.CreatedAt)
 	}
 
-	transfers, err = GetTransfersFromTo(context.Background(), testConn, fromAccount.ID, -1, 5, 5)
+	transfers, err = testStore.GetTransfersFromTo(context.Background(), fromAccount.ID, -1, 5, 5)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfers)
 
@@ -91,7 +91,7 @@ func TestGetTransfersTo(t *testing.T) {
 		}
 	}
 
-	transfers, err := GetTransfersFromTo(context.Background(), testConn, -1, toAccount.ID, 5, 0)
+	transfers, err := testStore.GetTransfersFromTo(context.Background(), -1, toAccount.ID, 5, 0)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfers)
 
@@ -103,7 +103,7 @@ func TestGetTransfersTo(t *testing.T) {
 		require.Equal(t, expectedTransfers[i].CreatedAt, transfer.CreatedAt)
 	}
 
-	transfers, err = GetTransfersFromTo(context.Background(), testConn, -1, toAccount.ID, 5, 5)
+	transfers, err = testStore.GetTransfersFromTo(context.Background(), -1, toAccount.ID, 5, 5)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfers)
 
@@ -133,7 +133,7 @@ func TestGetTransfersFromTo(t *testing.T) {
 		}
 	}
 
-	transfers, err := GetTransfersFromTo(context.Background(), testConn, fromAccount.ID, toAccount.ID, 5, 0)
+	transfers, err := testStore.GetTransfersFromTo(context.Background(), fromAccount.ID, toAccount.ID, 5, 0)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfers)
 
@@ -145,7 +145,7 @@ func TestGetTransfersFromTo(t *testing.T) {
 		require.Equal(t, expectedTransfers[i].CreatedAt, transfer.CreatedAt)
 	}
 
-	transfers, err = GetTransfersFromTo(context.Background(), testConn, fromAccount.ID, toAccount.ID, int64(len(expectedTransfers)-5), 5)
+	transfers, err = testStore.GetTransfersFromTo(context.Background(), fromAccount.ID, toAccount.ID, int64(len(expectedTransfers)-5), 5)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfers)
 

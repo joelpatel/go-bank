@@ -5,8 +5,8 @@ import (
 )
 
 // create
-func CreateEntry(ctx context.Context, executor Executor, accountID, amount int64) (*Entry, error) {
-	row := executor.QueryRowContext(ctx, "INSERT INTO entries (account_id, amount) VALUES ($1, $2) RETURNING id, account_id, amount, created_at;", accountID, amount)
+func (s *Queries) CreateEntry(ctx context.Context, accountID, amount int64) (*Entry, error) {
+	row := s.db.QueryRowContext(ctx, "INSERT INTO entries (account_id, amount) VALUES ($1, $2) RETURNING id, account_id, amount, created_at;", accountID, amount)
 
 	var entry Entry
 
@@ -19,10 +19,10 @@ func CreateEntry(ctx context.Context, executor Executor, accountID, amount int64
 }
 
 // read
-func GetEntryByID(ctx context.Context, executor Executor, id int64) (*Entry, error) {
+func (s *Queries) GetEntryByID(ctx context.Context, id int64) (*Entry, error) {
 	var entry Entry
 
-	err := executor.GetContext(ctx, &entry, "SELECT id, account_id, amount, created_at FROM entries WHERE id = $1;", id)
+	err := s.db.GetContext(ctx, &entry, "SELECT id, account_id, amount, created_at FROM entries WHERE id = $1;", id)
 	if err != nil {
 		return nil, err
 	}
@@ -31,10 +31,10 @@ func GetEntryByID(ctx context.Context, executor Executor, id int64) (*Entry, err
 }
 
 // read all for account_id (pagination)
-func GetEntriesByAccountID(ctx context.Context, executor Executor, account_id, limit, offset int64) (*[]Entry, error) {
+func (s *Queries) GetEntriesByAccountID(ctx context.Context, account_id, limit, offset int64) (*[]Entry, error) {
 	var entries []Entry
 
-	err := executor.SelectContext(ctx, &entries, "SELECT id, account_id, amount, created_at FROM entries WHERE account_id = $1 ORDER BY id LIMIT $2 OFFSET $3;", account_id, limit, offset)
+	err := s.db.SelectContext(ctx, &entries, "SELECT id, account_id, amount, created_at FROM entries WHERE account_id = $1 ORDER BY id LIMIT $2 OFFSET $3;", account_id, limit, offset)
 	if err != nil {
 		return nil, err
 	}

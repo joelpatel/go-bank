@@ -11,7 +11,7 @@ import (
 
 func createRandomEntry(t *testing.T, account *Account) *Entry {
 	entryAmount := utils.RandomMoney()
-	entry, err := CreateEntry(context.Background(), testConn, account.ID, entryAmount)
+	entry, err := testStore.CreateEntry(context.Background(), account.ID, entryAmount)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, entry)
@@ -31,7 +31,7 @@ func TestCreateEntry(t *testing.T) {
 func TestGetEntryById(t *testing.T) {
 	expectedEntry := createRandomEntry(t, createRandomAccount(t))
 
-	entry, err := GetEntryByID(context.Background(), testConn, expectedEntry.ID)
+	entry, err := testStore.GetEntryByID(context.Background(), expectedEntry.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, entry)
 
@@ -49,7 +49,7 @@ func TestGetEntriesByAccountID(t *testing.T) {
 		expectedEntries[i] = *createRandomEntry(t, account)
 	}
 
-	entries, err := GetEntriesByAccountID(context.Background(), testConn, account.ID, 5, 0)
+	entries, err := testStore.GetEntriesByAccountID(context.Background(), account.ID, 5, 0)
 	require.NoError(t, err)
 
 	for i, entry := range *entries {
@@ -59,7 +59,7 @@ func TestGetEntriesByAccountID(t *testing.T) {
 		require.Equal(t, expectedEntries[i].CreatedAt, entry.CreatedAt)
 	}
 
-	entries, err = GetEntriesByAccountID(context.Background(), testConn, account.ID, 5, 5)
+	entries, err = testStore.GetEntriesByAccountID(context.Background(), account.ID, 5, 5)
 	require.NoError(t, err)
 
 	for i, entry := range *entries {

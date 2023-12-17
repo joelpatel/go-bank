@@ -10,7 +10,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var testConn Executor
+var testStore Store
 
 func TestMain(m *testing.M) {
 	err := godotenv.Load("../.env")
@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err.Error())
 	}
 
-	testConn = db
+	testStore = NewStore(db)
 
 	os.Exit(m.Run())
 }

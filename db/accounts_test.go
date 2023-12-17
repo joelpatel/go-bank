@@ -17,7 +17,7 @@ func createRandomAccount(t *testing.T) *Account {
 	owner := utils.RandomOwner()
 	balance := utils.RandomMoney()
 
-	account, err := CreateAccount(context.Background(), testConn, owner, balance, currency.USD)
+	account, err := testStore.CreateAccount(context.Background(), owner, balance, currency.USD)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
@@ -38,7 +38,7 @@ func TestCreateAccount(t *testing.T) {
 
 func TestGetAccount(t *testing.T) {
 	expectedAccount := createRandomAccount(t)
-	account, err := GetAccountByID(context.Background(), testConn, expectedAccount.ID)
+	account, err := testStore.GetAccountByID(context.Background(), expectedAccount.ID)
 
 	require.NoError(t, err)
 	require.Equal(t, expectedAccount.ID, account.ID)
@@ -50,7 +50,7 @@ func TestGetAccount(t *testing.T) {
 
 func TestGetAccountForUpdate(t *testing.T) {
 	expectedAccount := createRandomAccount(t)
-	account, err := GetAccountByIDForUpdate(context.Background(), testConn, expectedAccount.ID)
+	account, err := testStore.GetAccountByIDForUpdate(context.Background(), expectedAccount.ID)
 
 	require.NoError(t, err)
 	require.Equal(t, expectedAccount.ID, account.ID)
@@ -62,10 +62,10 @@ func TestGetAccountForUpdate(t *testing.T) {
 
 func TestGetAccountsByOwner(t *testing.T) {
 	account1 := createRandomAccount(t)
-	account2, err := CreateAccount(context.Background(), testConn, account1.Owner, utils.RandomMoney(), currency.USD)
+	account2, err := testStore.CreateAccount(context.Background(), account1.Owner, utils.RandomMoney(), currency.USD)
 	require.NoError(t, err)
 
-	accounts, err := GetAccountsByOwner(context.Background(), testConn, account1.Owner)
+	accounts, err := testStore.GetAccountsByOwner(context.Background(), account1.Owner)
 	require.NoError(t, err)
 
 	require.Equal(t, 2, len(*accounts))
@@ -87,12 +87,12 @@ func TestGetAllAccounts(t *testing.T) {
 	expectedAccounts[0] = *createRandomAccount(t)
 
 	for i := 1; i < 10; i++ {
-		account, err := CreateAccount(context.Background(), testConn, expectedAccounts[0].Owner, utils.RandomMoney(), currency.USD)
+		account, err := testStore.CreateAccount(context.Background(), expectedAccounts[0].Owner, utils.RandomMoney(), currency.USD)
 		expectedAccounts[i] = *account
 		require.NoError(t, err)
 	}
 
-	accounts, err := ListAccounts(context.Background(), testConn, expectedAccounts[0].Owner, 5, 0)
+	accounts, err := testStore.ListAccounts(context.Background(), expectedAccounts[0].Owner, 5, 0)
 
 	require.NoError(t, err)
 	for i := 0; i < 5; i++ {
@@ -103,7 +103,7 @@ func TestGetAllAccounts(t *testing.T) {
 		require.WithinDuration(t, expectedAccounts[i].CreatedAt, (*accounts)[i].CreatedAt, time.Second)
 	}
 
-	accounts, err = ListAccounts(context.Background(), testConn, expectedAccounts[0].Owner, 5, 5)
+	accounts, err = testStore.ListAccounts(context.Background(), expectedAccounts[0].Owner, 5, 5)
 	require.NoError(t, err)
 	for i, j := 0, 5; i < 5 && j < 10; i, j = i+1, j+1 {
 		require.Equal(t, expectedAccounts[j].ID, (*accounts)[i].ID)
@@ -132,11 +132,11 @@ func TestUpdateAccount(t *testing.T) {
 		CreatedAt: originalAccount.CreatedAt,
 	}
 
-	rowsAffected, err := UpdateAccount(context.Background(), testConn, &expectedAccount)
+	rowsAffected, err := testStore.UpdateAccount(context.Background(), &expectedAccount)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), rowsAffected)
 
-	updatedAccount, err := GetAccountByID(context.Background(), testConn, originalAccount.ID)
+	updatedAccount, err := testStore.GetAccountByID(context.Background(), originalAccount.ID)
 	require.NoError(t, err)
 	require.Equal(t, expectedAccount.ID, updatedAccount.ID)
 	require.Equal(t, expectedAccount.Owner, updatedAccount.Owner)
@@ -148,11 +148,11 @@ func TestUpdateAccount(t *testing.T) {
 func TestUpdateAccountBalance(t *testing.T) {
 	originalAccount := createRandomAccount(t)
 
-	rowsAffected, err := UpdateAccountBalance(context.Background(), testConn, originalAccount.ID, originalAccount.Balance+2000)
+	rowsAffected, err := testStore.UpdateAccountBalance(context.Background(), originalAccount.ID, originalAccount.Balance+2000)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), rowsAffected)
 
-	updatedAccount, err := GetAccountByID(context.Background(), testConn, originalAccount.ID)
+	updatedAccount, err := testStore.GetAccountByID(context.Background(), originalAccount.ID)
 	require.NoError(t, err)
 	require.Equal(t, originalAccount.ID, updatedAccount.ID)
 	require.Equal(t, originalAccount.Owner, updatedAccount.Owner)
@@ -164,7 +164,7 @@ func TestUpdateAccountBalance(t *testing.T) {
 func TestAddAccountBalance(t *testing.T) {
 	originalAccount := createRandomAccount(t)
 
-	updatedAccount, err := AddAccountBalance(context.Background(), testConn, originalAccount.ID, 2000)
+	updatedAccount, err := testStore.AddAccountBalance(context.Background(), originalAccount.ID, 2000)
 
 	require.NoError(t, err)
 	require.Equal(t, originalAccount.ID, updatedAccount.ID)
@@ -173,7 +173,7 @@ func TestAddAccountBalance(t *testing.T) {
 	require.Equal(t, originalAccount.Currency, updatedAccount.Currency)
 	require.Equal(t, originalAccount.CreatedAt, updatedAccount.CreatedAt)
 
-	_, err = AddAccountBalance(context.Background(), testConn, originalAccount.ID, -10000) // random generate max 1000 + 2000 leads to max 3000 ==> this should lead to negative amount
+	_, err = testStore.AddAccountBalance(context.Background(), originalAccount.ID, -10000) // random generate max 1000 + 2000 leads to max 3000 ==> this should lead to negative amount
 	expectedError := fmt.Errorf("%d's balance is less than requested amount", originalAccount.ID)
 	require.Error(t, expectedError, err)
 }
@@ -181,11 +181,11 @@ func TestAddAccountBalance(t *testing.T) {
 func TestDeleteAccountByID(t *testing.T) {
 	originalAccount := createRandomAccount(t)
 
-	rowsAffected, err := DeleteAccountByID(context.Background(), testConn, originalAccount.ID)
+	rowsAffected, err := testStore.DeleteAccountByID(context.Background(), originalAccount.ID)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), rowsAffected)
 
-	account, err := GetAccountByID(context.Background(), testConn, originalAccount.ID)
+	account, err := testStore.GetAccountByID(context.Background(), originalAccount.ID)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), pgx.ErrNoRows.Error()))
 	require.Empty(t, account)

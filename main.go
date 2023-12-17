@@ -7,11 +7,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var store db.Store
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("error loading .env file")
 	}
 
-	db.InitializeDBConnection()
+	store = db.InitializeDBStore()
 }

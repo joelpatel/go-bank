@@ -1,6 +1,8 @@
 package db
 
-import "time"
+import (
+	"time"
+)
 
 type Account struct {
 	ID        int64     `json:"id" db:"id"`
