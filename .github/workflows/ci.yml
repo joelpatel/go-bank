@@ -1,0 +1,53 @@
+name: Run unit tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.1-alpine
+        env:
+          POSTGRES_USER: ci-user
+          POSTGRES_PASSWORD: ci-password
+          POSTGRES_DB: ci-bank
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.21
+      id: go
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Create env file
+      run: |
+        touch .env
+        echo TEST_DATABASE_HOST=localhost >> .env
+        echo TEST_DATABASE_PORT=5432 >> .env
+        echo TEST_DATABASE_USER=ci-user >> .env
+        echo TEST_DATABASE_PASS=ci-password >> .env
+        echo TEST_DATABASE_NAME=ci-bank >> .env
+        echo TEST_DATABASE_SSLMODE=disable >> .env
+        cat .env
+    - name: Install golang-migrate
+      run: |
+        curl -L https://github.com/golang-migrate/migrate/releases/download/4.16.2/migrate.linux-amd64.tar.gz | tar xvz
+        sudo mv migrate.linux-amd64 /usr/bin/migrate
+        which migrate
+    - name: Run migrations
+      run: make test_migrateup
+    - name: Test
+      run: make test
