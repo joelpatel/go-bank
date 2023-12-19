@@ -13,6 +13,12 @@ migrateup:
 migratedown:
 	migrate -path sql -database "$(DB_URL)" -verbose down -all
 
+test_migrateup:
+	migrate -path sql -database "$(TEST_DB_URL)" -verbose up
+
+test_migratedown:
+	migrate -path sql -database "$(TEST_DB_URL)" -verbose down -all
+
 new_migration:
 	migrate create -ext sql -dir sql -seq $(name)
 
@@ -32,4 +38,4 @@ post_test:
 execute_tests:
 	make pre_test && make test && make post_test
 
-.PHONY: postgres migrateup migratedown new_migration pre_test test post_test execute_tests
+.PHONY: postgres migrateup migratedown test_migrateup test_migratedown new_migration pre_test test post_test execute_tests
