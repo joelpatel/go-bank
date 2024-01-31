@@ -64,9 +64,14 @@ func (s *Queries) ListAccounts(ctx context.Context, owner string, limit, offset 
 	return &accounts, nil
 }
 
-// update
+// update (for adming use ONLY)
 func (s *Queries) UpdateAccount(ctx context.Context, account *Account) (int64, error) {
 	return s.db.MustExecContext(ctx, "UPDATE accounts SET owner = $1, balance = $2, currency = $3 WHERE id = $4;", account.Owner, account.Balance, account.Currency, account.ID).RowsAffected()
+}
+
+// update owner for accountID
+func (s *Queries) UpdateAccountOwner(ctx context.Context, accountID int64, newOwner string) (int64, error) {
+	return s.db.MustExecContext(ctx, "UPDATE accounts SET owner = $1 WHERE id = $2;", newOwner, accountID).RowsAffected()
 }
 
 // update account balance

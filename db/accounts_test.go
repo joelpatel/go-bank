@@ -145,6 +145,22 @@ func TestUpdateAccount(t *testing.T) {
 	require.Equal(t, expectedAccount.CreatedAt, updatedAccount.CreatedAt)
 }
 
+func TestUpdateAccountOwner(t *testing.T) {
+	account := createRandomAccount(t)
+
+	rowsAffected, err := testStore.UpdateAccountOwner(context.Background(), account.ID, "new_owner")
+	require.NoError(t, err)
+	require.Equal(t, int64(1), rowsAffected)
+
+	updatedAccout, err := testStore.GetAccountByID(context.Background(), account.ID)
+	require.NoError(t, err)
+	require.Equal(t, account.ID, updatedAccout.ID)
+	require.Equal(t, "new_owner", updatedAccout.Owner)
+	require.Equal(t, account.Balance, updatedAccout.Balance)
+	require.Equal(t, account.Currency, updatedAccout.Currency)
+	require.Equal(t, account.CreatedAt, updatedAccout.CreatedAt)
+}
+
 func TestUpdateAccountBalance(t *testing.T) {
 	originalAccount := createRandomAccount(t)
 

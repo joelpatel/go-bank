@@ -14,6 +14,7 @@ type Store interface {
 	GetAccountsByOwner(ctx context.Context, owner string) (*[]Account, error)
 	ListAccounts(ctx context.Context, owner string, limit, offset int64) (*[]Account, error)
 	UpdateAccount(ctx context.Context, account *Account) (int64, error)
+	UpdateAccountOwner(ctx context.Context, id int64, newOwner string) (int64, error)
 	UpdateAccountBalance(ctx context.Context, id int64, balance int64) (int64, error)
 	AddAccountBalance(ctx context.Context, id int64, amount int64) (*Account, error)
 	DeleteAccountByID(ctx context.Context, id int64) (int64, error)
