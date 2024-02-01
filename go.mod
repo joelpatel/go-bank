@@ -8,6 +8,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.4
+	go.uber.org/mock v0.4.0
 )
 
 require (

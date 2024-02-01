@@ -38,4 +38,7 @@ post_test:
 execute_tests:
 	make pre_test && make test && make post_test
 
-.PHONY: postgres migrateup migratedown test_migrateup test_migratedown new_migration pre_test test post_test execute_tests
+mockdb:
+	mockgen -package mockdb -destination db/mockdb/store.go github.com/joelpatel/go-bank/db Store
+
+.PHONY: postgres migrateup migratedown test_migrateup test_migratedown new_migration pre_test test post_test execute_tests mockdb
