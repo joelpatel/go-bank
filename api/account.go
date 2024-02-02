@@ -47,7 +47,6 @@ func (server *Server) getAccountByID(ctx *gin.Context) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, gin.H{"message": fmt.Sprintf("Account with id %d not found.", request.ID)})
-
 		} else {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		}
