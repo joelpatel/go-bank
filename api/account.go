@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joelpatel/go-bank/currency"
 )
 
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD INR"`
+	Currency string `json:"currency" binding:"required"`
 }
 
 func (server *Server) createAccount(ctx *gin.Context) {
@@ -18,6 +19,11 @@ func (server *Server) createAccount(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	if !currency.IsSupportedCurrency(request.Currency) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s is an unsupported currency.", request.Currency)})
 		return
 	}
 
