@@ -47,15 +47,15 @@ func beforeEach(t *testing.T) (*db.Account, *mockdb.MockStore, *Server, *httptes
 	return account, store, server, recorder
 }
 
-func requireBodyMatchAccount(t *testing.T, expectedAccount *db.Account, body *bytes.Buffer) {
+func requireBodyMatchAccounts[A db.Account | []db.Account](t *testing.T, expected *A, body *bytes.Buffer) {
 	data, err := io.ReadAll(body)
 	assert.NoError(t, err)
 
-	var actualAccount db.Account
-	err = json.Unmarshal(data, &actualAccount)
+	var actual A
+	err = json.Unmarshal(data, &actual)
 	assert.NoError(t, err)
 
-	assert.Equal(t, *expectedAccount, actualAccount)
+	assert.Equal(t, *expected, actual)
 }
 
 // API should return status OK and with the account associated with the account ID.
@@ -76,7 +76,7 @@ func TestGetAccountByIDOK(t *testing.T) {
 
 	// check response
 	assert.Equal(t, http.StatusOK, recorder.Code)
-	requireBodyMatchAccount(t, account, recorder.Body)
+	requireBodyMatchAccounts(t, account, recorder.Body)
 }
 
 // When invalid uri param is sent in the request, the server should respond with bad request status code.
@@ -167,7 +167,7 @@ func TestCreateAccountOK(t *testing.T) {
 
 	// check response
 	assert.Equal(t, http.StatusOK, recorder.Code)
-	requireBodyMatchAccount(t, account, recorder.Body)
+	requireBodyMatchAccounts(t, account, recorder.Body)
 }
 
 // When the requested currency is not supported, it should respond with status bad request with apt error message.
