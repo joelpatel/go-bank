@@ -350,7 +350,7 @@ func TestListAccountsByOwnerBadQueryParam(t *testing.T) {
 }
 
 // When any internal server occurs like connection to DB terminated, then it should respond with status internal server error.
-func TestListAccountsByOwnerInterServerError(t *testing.T) {
+func TestListAccountsByOwnerInternalServerError(t *testing.T) {
 	store, server, recorder := beforeEach(t)
 
 	// build stubs
@@ -464,7 +464,7 @@ func TestUpdateAccountOwnerInternalServerError(t *testing.T) {
 	store.EXPECT().
 		UpdateAccountOwner(gomock.Any(), gomock.Eq(account.ID), gomock.Eq(newOwner)).
 		Times(1).
-		Return(int64(-1), sql.ErrConnDone)
+		Return(int64(0), sql.ErrConnDone)
 
 	// build & send request
 	body := gin.H{"id": account.ID, "new_owner": newOwner}
@@ -488,7 +488,7 @@ func TestUpdateAccountOwnerNotModified(t *testing.T) {
 	store.EXPECT().
 		UpdateAccountOwner(gomock.Any(), gomock.Any(), gomock.Eq(newOwner)).
 		Times(1).
-		Return(int64(-1), nil)
+		Return(int64(0), nil)
 
 	// build & send request
 	body := gin.H{"id": utils.RandomInt(1, 1000), "new_owner": newOwner}
@@ -501,4 +501,81 @@ func TestUpdateAccountOwnerNotModified(t *testing.T) {
 
 	// check response
 	assert.Equal(t, http.StatusNotModified, recorder.Code)
+}
+
+// When a correct request is send to delete an existing account, server should delete the account and respond with status no content.
+func TestDeleteAccountByIDOK(t *testing.T) {
+	store, server, recorder := beforeEach(t)
+	account := randomAccount()
+
+	// build stubs
+	store.EXPECT().
+		DeleteAccountByID(gomock.Any(), gomock.Eq(account.ID)).
+		Times(1).
+		Return(int64(1), nil)
+
+	// build & send request
+	url := fmt.Sprintf("/account/delete/%d", account.ID)
+	request, err := http.NewRequest(http.MethodDelete, url, nil)
+	assert.NoError(t, err)
+	server.router.ServeHTTP(recorder, request)
+
+	// check response
+	assert.Equal(t, http.StatusNoContent, recorder.Code)
+}
+
+// When the uri parameter is invalid in the delete request, then the server should respond with status bad request.
+func TestDeleteAccountByIDBadRequest(t *testing.T) {
+	_, server, recorder := beforeEach(t)
+
+	// build & send request
+	url := fmt.Sprintf("/account/delete/%d", 0)
+	request, err := http.NewRequest(http.MethodDelete, url, nil)
+	assert.NoError(t, err)
+	server.router.ServeHTTP(recorder, request)
+
+	// check response
+	assert.Equal(t, http.StatusBadRequest, recorder.Code)
+}
+
+// When some internal server error occurs like connection to DB terminated, then the server should respond with status internal server error.
+func TestDeleteAccountByIDInternalServerError(t *testing.T) {
+	store, server, recorder := beforeEach(t)
+	account := randomAccount()
+
+	// build stubs
+	store.EXPECT().
+		DeleteAccountByID(gomock.Any(), gomock.Eq(account.ID)).
+		Times(1).
+		Return(int64(0), sql.ErrConnDone)
+
+	// build & send request
+	url := fmt.Sprintf("/account/delete/%d", account.ID)
+	request, err := http.NewRequest(http.MethodDelete, url, nil)
+	assert.NoError(t, err)
+	server.router.ServeHTTP(recorder, request)
+
+	// check response
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+}
+
+// When the request account ID does not exist, then the server should respond with status not found.
+func TestDeleteAccountByIDNotFound(t *testing.T) {
+	store, server, recorder := beforeEach(t)
+	account := randomAccount()
+
+	// build stubs
+	store.EXPECT().
+		DeleteAccountByID(gomock.Any(), gomock.Eq(account.ID)).
+		Times(1).
+		Return(int64(0), nil)
+
+	// build & send request
+	url := fmt.Sprintf("/account/delete/%d", account.ID)
+	request, err := http.NewRequest(http.MethodDelete, url, nil)
+	assert.NoError(t, err)
+	server.router.ServeHTTP(recorder, request)
+
+	// check response
+	assert.Equal(t, http.StatusNotFound, recorder.Code)
 }
