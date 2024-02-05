@@ -114,11 +114,6 @@ func (server *Server) updateAccountOwner(ctx *gin.Context) {
 
 	rowsAffected, err := server.store.UpdateAccountOwner(ctx, request.ID, request.NewOwner)
 
-	if err == sql.ErrNoRows {
-		ctx.Status(http.StatusNotFound)
-		return
-	}
-
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		return

@@ -414,3 +414,91 @@ func TestListAccountsByOwnerNoRecords(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "Accounts from entry 0 not found.", response.Message)
 }
+
+// When a correct request is sent to update the owner of an account, it should update the owner information for that account and respond with status no content indicating successfull operation.
+func TestUpdateAccountOwnerOK(t *testing.T) {
+	store, server, recorder := beforeEach(t)
+	account := randomAccount()
+	newOwner := utils.RandomString(8) // randomOwner has length of 6 so it'll never collide
+
+	// build stubs
+	store.EXPECT().
+		UpdateAccountOwner(gomock.Any(), gomock.Eq(account.ID), gomock.Eq(newOwner)).
+		Times(1).
+		Return(int64(1), nil)
+
+	// build & send request
+	body := gin.H{"id": account.ID, "new_owner": newOwner}
+	data, err := json.Marshal(body)
+	assert.NoError(t, err)
+	url := "/account/update"
+	request, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(data))
+	assert.NoError(t, err)
+	server.router.ServeHTTP(recorder, request)
+
+	// check response
+	assert.Equal(t, http.StatusNoContent, recorder.Code)
+}
+
+// When required data is not sent in the request, server should respond with status bad request.
+func TestUpdateAccountOwnerBadRequest(t *testing.T) {
+	_, server, recorder := beforeEach(t)
+
+	// build & send request
+	url := "/account/update"
+	request, err := http.NewRequest(http.MethodPut, url, nil)
+	assert.NoError(t, err)
+	server.router.ServeHTTP(recorder, request)
+
+	// check response
+	assert.Equal(t, http.StatusBadRequest, recorder.Code)
+}
+
+// When any internal server error occurs like connection to DB terminated, then it should respond with status internal server error.
+func TestUpdateAccountOwnerInternalServerError(t *testing.T) {
+	store, server, recorder := beforeEach(t)
+	account := randomAccount()
+	newOwner := utils.RandomString(8)
+
+	// build stubs
+	store.EXPECT().
+		UpdateAccountOwner(gomock.Any(), gomock.Eq(account.ID), gomock.Eq(newOwner)).
+		Times(1).
+		Return(int64(-1), sql.ErrConnDone)
+
+	// build & send request
+	body := gin.H{"id": account.ID, "new_owner": newOwner}
+	data, err := json.Marshal(body)
+	assert.NoError(t, err)
+	url := "/account/update"
+	request, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(data))
+	assert.NoError(t, err)
+	server.router.ServeHTTP(recorder, request)
+
+	// check response
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+}
+
+// When the server could update the owner information (because it may not exist), then server should respond with status not modified.
+func TestUpdateAccountOwnerNotModified(t *testing.T) {
+	store, server, recorder := beforeEach(t)
+	newOwner := utils.RandomString(8)
+
+	// build stubs
+	store.EXPECT().
+		UpdateAccountOwner(gomock.Any(), gomock.Any(), gomock.Eq(newOwner)).
+		Times(1).
+		Return(int64(-1), nil)
+
+	// build & send request
+	body := gin.H{"id": utils.RandomInt(1, 1000), "new_owner": newOwner}
+	data, err := json.Marshal(body)
+	assert.NoError(t, err)
+	url := "/account/update"
+	request, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(data))
+	assert.NoError(t, err)
+	server.router.ServeHTTP(recorder, request)
+
+	// check response
+	assert.Equal(t, http.StatusNotModified, recorder.Code)
+}
